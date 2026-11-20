@@ -1,0 +1,169 @@
+/* ==========================================================
+   FoodBridge — Page Styles
+   Styles for Login, Register, Dashboards, and NotFound.
+   ========================================================== */
+
+/* ===== Auth Pages (Login & Register) ===== */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - var(--navbar-height) - 80px);
+  padding: var(--space-lg);
+}
+
+.auth-page__card {
+  width: 100%;
+  max-width: 440px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-xl);
+}
+
+.auth-page__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--space-xs);
+}
+
+.auth-page__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+  margin-bottom: var(--space-lg);
+}
+
+.auth-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.auth-page__form .btn {
+  margin-top: var(--space-sm);
+  width: 100%;
+}
+
+.auth-page__footer-text {
+  margin-top: var(--space-lg);
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+.auth-page__link {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ===== Dashboard Pages ===== */
+.dashboard-page {
+  max-width: 960px;
+}
+
+.dashboard-page__title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  margin-bottom: var(--space-sm);
+}
+
+.dashboard-page__welcome {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xl);
+}
+
+/* Stats / Summary Cards */
+.dashboard-page__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-lg);
+}
+
+.dashboard-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.dashboard-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-light);
+  margin-bottom: var(--space-sm);
+}
+
+.dashboard-card__value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.dashboard-card__description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-light);
+}
+
+/* ===== Not Found Page ===== */
+.not-found-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  text-align: center;
+  padding: var(--space-xl);
+}
+
+.not-found-page__code {
+  font-size: 6rem;
+  font-weight: 800;
+  color: var(--color-primary-light);
+  line-height: 1;
+  margin-bottom: var(--space-md);
+}
+
+.not-found-page__title {
+  font-size: var(--font-size-xl);
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.not-found-page__message {
+  font-size: var(--font-size-base);
+  color: var(--color-text-light);
+  margin-bottom: var(--space-xl);
+  max-width: 400px;
+}
+
+.not-found-page__link {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .auth-page__card {
+    padding: var(--space-lg);
+    box-shadow: none;
+    border: 1px solid var(--color-border);
+  }
+
+  .dashboard-page__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .not-found-page__code {
+    font-size: 4rem;
+  }
+}
