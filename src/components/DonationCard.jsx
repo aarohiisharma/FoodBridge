@@ -8,8 +8,16 @@ function formatDate(value) {
   return Number.isNaN(date.getTime()) ? 'Not specified' : date.toLocaleString();
 }
 
-function DonationCard({ donation, onEdit, onDelete }) {
+function DonationCard({
+  donation,
+  onEdit,
+  onDelete,
+  onDetails,
+  onRequestPickup,
+  requestDisabled = false,
+}) {
   const expired = donation.expiry_time && new Date(donation.expiry_time) <= new Date();
+  const unavailable = String(donation.status).toUpperCase() !== 'AVAILABLE' || expired;
 
   return (
     <article className="donation-card">
@@ -30,24 +38,49 @@ function DonationCard({ donation, onEdit, onDelete }) {
         <p><strong>Consume by:</strong> {formatDate(donation.expiry_time)}</p>
         {donation.description && <p className="donation-card__description">{donation.description}</p>}
         <div className="donation-card__actions">
-          <Button
-            type="button"
-            size="small"
-            variant="outline"
-            onClick={() => onEdit(donation)}
-            aria-label={`Edit ${donation.food_name}`}
-          >
-            Edit
-          </Button>
-          <Button
-            type="button"
-            size="small"
-            variant="danger"
-            onClick={() => onDelete(donation)}
-            aria-label={`Delete ${donation.food_name}`}
-          >
-            Delete
-          </Button>
+          {onDetails && (
+            <Button
+              type="button"
+              size="small"
+              variant="outline"
+              onClick={() => onDetails(donation)}
+              aria-label={`View details for ${donation.food_name}`}
+            >
+              View details
+            </Button>
+          )}
+          {onRequestPickup && (
+            <Button
+              type="button"
+              size="small"
+              onClick={() => onRequestPickup(donation)}
+              disabled={requestDisabled || unavailable}
+            >
+              Request pickup
+            </Button>
+          )}
+          {onEdit && (
+            <Button
+              type="button"
+              size="small"
+              variant="outline"
+              onClick={() => onEdit(donation)}
+              aria-label={`Edit ${donation.food_name}`}
+            >
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              type="button"
+              size="small"
+              variant="danger"
+              onClick={() => onDelete(donation)}
+              aria-label={`Delete ${donation.food_name}`}
+            >
+              Delete
+            </Button>
+          )}
         </div>
       </div>
     </article>
