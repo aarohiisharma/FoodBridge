@@ -5,8 +5,14 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
+    environmentOptions: {
+      jsdom: {
+        url: 'http://localhost/',
+      },
+    },
     globals: true,
     setupFiles: './src/tests/setup.js',
     css: true,
+    include: ['src/tests/**/*.{test,spec}.{js,jsx,ts,tsx}'],
   },
 });

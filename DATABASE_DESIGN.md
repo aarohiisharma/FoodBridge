@@ -1,6 +1,6 @@
 # FoodBridge PostgreSQL Database Design
 
-> **Coordination status:** This design uses the existing backend's table and column naming where practical. Member 2 (backend) review is still pending. In particular, see the compatibility notes before applying the SQL or treating these names as a finalized API contract.
+> **Coordination status:** Member 2 (backend) approved this design unchanged. In particular, see the compatibility notes before applying the SQL or treating these names as a drop-in replacement for the current backend contract.
 
 ## ER diagram
 
@@ -219,9 +219,9 @@ Current service code must validate that `donor_id`, `ngo_id`, and `volunteer_id`
 - Deleting a volunteer user clears the optional assignment. Deleting a user referenced by a status-history row clears the actor reference but preserves the history.
 - Deleting a pickup request cascades its status history and clears optional notification references.
 
-## Backend compatibility review required
+## Backend compatibility and integration notes
 
-This is a normalized target schema, not a drop-in replacement for every current query. Before applying it, Member 2 should confirm the contract and plan any backend adjustments:
+This is the approved normalized target schema, not a drop-in replacement for every current query. Plan the required backend adjustments before applying it in an application environment:
 
 - Current auth/admin queries read and write `organization_name`, `registration_number`, and `verification_status` on `users`; this design moves them to `ngo_profiles`.
 - Current pickup queries expect `pickup_requests.donor_id` and `created_at`. This design omits the derivable donor ID and names the creation time `requested_at`; donor-specific listing should join through `donations`.
