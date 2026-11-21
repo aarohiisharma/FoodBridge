@@ -28,6 +28,25 @@ psql -U postgres -d foodbridge_dev -c "SELECT status, count(*) FROM donations GR
 psql -U postgres -d foodbridge_dev -c "SELECT status, count(*) FROM pickup_requests GROUP BY status ORDER BY status;"
 ```
 
+## Backend integration tests
+
+The Jest/Supertest integration suite uses only `TEST_DATABASE_URL`. It refuses to connect unless the target database name ends in `_test`, and cleans only its fixed `foodbridge-it-*@example.test` fixtures after each test. It never drops a database or truncates tables.
+
+Create a separate, empty test database and apply the schema once:
+
+```powershell
+createdb -U postgres foodbridge_integration_test
+psql -U postgres -d foodbridge_integration_test -v ON_ERROR_STOP=1 -f database/schema.sql
+$env:TEST_DATABASE_URL = 'postgresql://<user>:<password>@localhost:5432/foodbridge_integration_test'
+Push-Location backend
+npm run test:integration
+Pop-Location
+```
+
+Replace the URL placeholders locally; do not commit credentials. Do not set `TEST_DATABASE_URL` to a production or shared database. The test suite also sets its own test-only JWT secret and clears `PG*` connection overrides so they cannot redirect the pool away from the test URL.
+
+The backend integration tests exercise the HTTP API and verify persisted rows; they are separate from the mocked unit suite run by `npm test`. The current backend queries and `database/schema.sql` still have column-contract differences documented in `DATABASE_DESIGN.md`; those tests are expected to report real failures until the backend and schema are aligned.
+
 ## Development fixtures and passwords
 
 `seed.sql` creates three explicitly named development accounts:
