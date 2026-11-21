@@ -12,8 +12,7 @@ function Profile() {
     name: '',
     email: '',
     phone: '',
-    organizationName: '',
-    registrationDetails: '',
+    address: '',
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -24,8 +23,7 @@ function Profile() {
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      organizationName: user?.organizationName || '',
-      registrationDetails: user?.registrationDetails || '',
+      address: user?.address || '',
     });
   }, [user]);
 
@@ -84,7 +82,7 @@ function Profile() {
             id="profile-email"
             type="email"
             value={formData.email}
-            onChange={handleChange}
+            disabled
             required
           />
           <InputField
@@ -95,28 +93,12 @@ function Profile() {
             onChange={handleChange}
             required
           />
-          {user?.role === 'ngo' && (
-            <>
-              <InputField
-                label="Organization Name"
-                id="profile-organizationName"
-                value={formData.organizationName}
-                onChange={handleChange}
-              />
-              <div className="input-field">
-                <label htmlFor="profile-registrationDetails" className="input-field__label">
-                  Registration Details
-                </label>
-                <textarea
-                  id="profile-registrationDetails"
-                  value={formData.registrationDetails}
-                  onChange={handleChange}
-                  className="input-field__input"
-                  rows="3"
-                />
-              </div>
-            </>
-          )}
+          <InputField
+            label="Address"
+            id="profile-address"
+            value={formData.address}
+            onChange={handleChange}
+          />
           <Button type="submit" loading={loading}>
             Save Changes
           </Button>

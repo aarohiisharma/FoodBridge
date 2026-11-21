@@ -143,7 +143,7 @@ function Register() {
             type="password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             required
             showPasswordToggle
           />

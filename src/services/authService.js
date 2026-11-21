@@ -38,14 +38,18 @@ export async function registerUser({
     phone,
     role: role.toUpperCase(),
     ...(role === 'ngo' && {
-      organizationName,
-      registrationDetails,
+      ngoOrganizationName: organizationName,
+      ngoRegistrationNumber: registrationDetails,
     }),
   });
   return response.data;
 }
 
 export async function updateProfile(profile) {
-  const response = await api.put('/users/profile', profile);
+  const response = await api.put('/users/profile', {
+    name: profile.name,
+    ...(profile.phone !== undefined && { phone: profile.phone }),
+    ...(profile.address !== undefined && { address: profile.address }),
+  });
   return response.data;
 }

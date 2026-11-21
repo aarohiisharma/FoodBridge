@@ -41,8 +41,7 @@ export function AuthProvider({ children }) {
           setUser(currentUser);
           localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
         }
-      } catch (error) {
-        console.error('Failed to restore session:', error);
+      } catch {
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
       } finally {
