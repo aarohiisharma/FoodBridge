@@ -57,6 +57,26 @@
   font-weight: 600;
 }
 
+.profile-page {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.profile-page__card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-xl);
+}
+
+.success-message {
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  color: var(--color-primary-dark);
+  background: var(--color-success-light);
+  margin-bottom: var(--space-md);
+}
+
 /* ===== Dashboard Pages ===== */
 .dashboard-page {
   max-width: 960px;

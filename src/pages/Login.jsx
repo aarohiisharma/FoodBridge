@@ -26,9 +26,12 @@ function Login() {
     e.preventDefault();
     setError('');
 
-    // Basic client-side validation
-    if (!email || !password) {
-      setError('Please fill in all fields.');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
       return;
     }
 
@@ -36,7 +39,7 @@ function Login() {
       setLoading(true);
       const data = await loginUser(email, password);
       login(data.user, data.token);
-      navigate(`/dashboard/${data.user.role}`);
+      navigate(`/dashboard/${data.user.role.toLowerCase()}`);
     } catch (err) {
       const message =
         err.response?.data?.message || 'Login failed. Please try again.';
@@ -74,6 +77,7 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
             required
+            showPasswordToggle
           />
           <Button type="submit" variant="primary" loading={loading}>
             Log In

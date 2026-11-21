@@ -38,6 +38,9 @@ function Navbar() {
               >
                 Dashboard
               </Link>
+              <Link to="/profile" className="navbar__link">
+                Profile
+              </Link>
               <button
                 onClick={handleLogout}
                 className="navbar__logout-btn"
