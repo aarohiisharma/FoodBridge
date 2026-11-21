@@ -7,8 +7,8 @@ const registerValidation = validate([
   body('email').trim().normalizeEmail().isEmail().withMessage('A valid email is required'),
   body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
   body('role')
-    .isIn(['DONOR', 'NGO', 'VOLUNTEER', 'ADMIN', 'donor', 'ngo', 'volunteer', 'admin'])
-    .withMessage('Role must be DONOR, NGO, VOLUNTEER, or ADMIN'),
+    .isIn(['DONOR', 'NGO', 'VOLUNTEER', 'donor', 'ngo', 'volunteer'])
+    .withMessage('Role must be DONOR, NGO, or VOLUNTEER'),
   body('ngoOrganizationName')
     .if(body('role').isIn(['NGO', 'ngo']))
     .trim()

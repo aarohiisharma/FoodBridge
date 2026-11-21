@@ -24,33 +24,56 @@ async function getAssignedTasks(volunteerId) {
 }
 
 async function acceptAssignment(pickupId, volunteerId) {
-  const existing = await database.query(
-    'SELECT * FROM pickup_requests WHERE id = $1 LIMIT 1',
-    [pickupId],
-  );
-  if (!existing.rows[0]) {
-    throw new AppError('Assignment not found', 404);
-  }
+  const client = await database.pool.connect();
 
-  const task = existing.rows[0];
-  if (task.volunteer_id) {
-    throw new AppError('This assignment already has a volunteer', 409);
-  }
-  if (task.status !== 'APPROVED') {
-    throw new AppError('Only approved assignments are available', 422);
-  }
+  try {
+    await client.query('BEGIN');
+    const existing = await client.query(
+      'SELECT * FROM pickup_requests WHERE id = $1 FOR UPDATE',
+      [pickupId],
+    );
+    if (!existing.rows[0]) {
+      throw new AppError('Assignment not found', 404);
+    }
 
-  const updated = await database.query(
-    `UPDATE pickup_requests
-     SET status = 'ASSIGNED', volunteer_id = $1, updated_at = NOW()
-     WHERE id = $2 AND status = 'APPROVED' AND volunteer_id IS NULL
-     RETURNING *`,
-    [volunteerId, pickupId],
-  );
-  if (!updated.rows[0]) {
-    throw new AppError('This assignment was already accepted', 409);
+    const task = existing.rows[0];
+    if (task.volunteer_id) {
+      throw new AppError('This assignment already has a volunteer', 409);
+    }
+    if (task.status !== 'APPROVED') {
+      throw new AppError('Only approved assignments are available', 422);
+    }
+
+    const duplicate = await client.query(
+      `SELECT id
+       FROM pickup_requests
+       WHERE donation_id = $1 AND volunteer_id = $2 AND id <> $3
+       LIMIT 1`,
+      [task.donation_id, volunteerId, pickupId],
+    );
+    if (duplicate.rows.length > 0) {
+      throw new AppError('Duplicate volunteer assignment', 409);
+    }
+
+    const updated = await client.query(
+      `UPDATE pickup_requests
+       SET status = 'ASSIGNED', volunteer_id = $1, updated_at = NOW()
+       WHERE id = $2 AND status = 'APPROVED' AND volunteer_id IS NULL
+       RETURNING *`,
+      [volunteerId, pickupId],
+    );
+    if (!updated.rows[0]) {
+      throw new AppError('This assignment was already accepted', 409);
+    }
+
+    await client.query('COMMIT');
+    return updated.rows[0];
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
   }
-  return updated.rows[0];
 }
 
 async function declineAssignment(pickupId, volunteerId) {

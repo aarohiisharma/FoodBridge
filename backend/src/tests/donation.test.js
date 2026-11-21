@@ -171,6 +171,15 @@ describe('food donation management', () => {
     expect(response.status).toBe(403);
   });
 
+  it('does not allow a donor to override donation workflow status', async () => {
+    const response = await request(app)
+      .put('/api/donations/10')
+      .set('Authorization', `Bearer ${token()}`)
+      .send({ status: 'AVAILABLE' });
+
+    expect(response.status).toBe(422);
+  });
+
   it('allows the owner to delete a donation', async () => {
     database.query
       .mockResolvedValueOnce({ rows: [donation] })

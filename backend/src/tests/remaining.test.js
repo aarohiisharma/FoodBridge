@@ -1,8 +1,16 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret';
 
+const mockVolunteerClient = {
+  query: jest.fn(),
+  release: jest.fn(),
+};
+
 jest.mock('../config/database', () => ({
-  pool: { end: jest.fn(), connect: jest.fn() },
+  pool: {
+    end: jest.fn(),
+    connect: jest.fn().mockResolvedValue(mockVolunteerClient),
+  },
   query: jest.fn(),
 }));
 
@@ -18,6 +26,7 @@ function token(role, id) {
 describe('volunteer, admin, and notification features', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockVolunteerClient.query.mockReset();
   });
 
   it('shows available volunteer assignments', async () => {
@@ -34,9 +43,12 @@ describe('volunteer, admin, and notification features', () => {
   });
 
   it('allows an available task volunteer to accept an assignment', async () => {
-    database.query
-      .mockResolvedValueOnce({ rows: [{ id: 20, status: 'APPROVED', volunteer_id: null }] })
-      .mockResolvedValueOnce({ rows: [{ id: 20, status: 'ASSIGNED', volunteer_id: 3 }] });
+    mockVolunteerClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ id: 20, donation_id: 10, status: 'APPROVED', volunteer_id: null }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 20, status: 'ASSIGNED', volunteer_id: 3 }] })
+      .mockResolvedValueOnce({});
 
     const response = await request(app)
       .patch('/api/volunteers/tasks/20/accept')
@@ -47,9 +59,10 @@ describe('volunteer, admin, and notification features', () => {
   });
 
   it('rejects a duplicate volunteer assignment', async () => {
-    database.query.mockResolvedValueOnce({
-      rows: [{ id: 20, status: 'ASSIGNED', volunteer_id: 4 }],
-    });
+    mockVolunteerClient.query
+      .mockResolvedValueOnce({})
+      .mockResolvedValueOnce({ rows: [{ id: 20, donation_id: 10, status: 'APPROVED', volunteer_id: null }] })
+      .mockResolvedValueOnce({ rows: [{ id: 21 }] });
 
     const response = await request(app)
       .patch('/api/volunteers/tasks/20/accept')

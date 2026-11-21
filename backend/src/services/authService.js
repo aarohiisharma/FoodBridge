@@ -3,7 +3,7 @@ const database = require('../config/database');
 const { signToken } = require('../config/jwt');
 const AppError = require('../utils/AppError');
 
-const ALLOWED_ROLES = new Set(['DONOR', 'NGO', 'VOLUNTEER', 'ADMIN']);
+const ALLOWED_ROLES = new Set(['DONOR', 'NGO', 'VOLUNTEER']);
 
 function toPublicUser(row) {
   if (!row) return null;

@@ -38,8 +38,8 @@ const updateDonationValidation = validate([
   body('description').optional({ nullable: true }).trim().isLength({ max: 1000 }),
   body('pickup_location').optional().trim().notEmpty().isLength({ max: 255 }),
   body('image_url').optional({ nullable: true }).trim().isURL(),
-  body('status').optional().trim().toUpperCase()
-    .isIn(['AVAILABLE', 'CLAIMED', 'COMPLETED', 'CANCELLED']),
+  body('status').optional().custom(() => false)
+    .withMessage('Donation status is managed by the pickup workflow'),
   body('expiry_time').optional().custom((expiryTime, { req }) => {
     if (!req.body.preparation_time) return true;
     return new Date(expiryTime) > new Date(req.body.preparation_time);

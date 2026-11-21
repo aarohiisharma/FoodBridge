@@ -124,7 +124,6 @@ async function updateDonation(id, donorId, updates) {
     'description',
     'pickup_location',
     'image_url',
-    'status',
   ];
   const assignments = [];
   const values = [];

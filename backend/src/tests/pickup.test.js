@@ -50,6 +50,7 @@ describe('pickup request management', () => {
 
   it('allows an NGO to request an available, unexpired donation', async () => {
     mockQuery
+      .mockResolvedValueOnce({ rows: [{ id: 2, role: 'NGO', verification_status: 'VERIFIED' }] })
       .mockResolvedValueOnce({ rows: [availableDonation] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [pickup] });
@@ -65,6 +66,7 @@ describe('pickup request management', () => {
 
   it('rejects duplicate pending pickup requests', async () => {
     mockQuery
+      .mockResolvedValueOnce({ rows: [{ id: 2, role: 'NGO', verification_status: 'VERIFIED' }] })
       .mockResolvedValueOnce({ rows: [availableDonation] })
       .mockResolvedValueOnce({ rows: [pickup] });
 
@@ -77,7 +79,9 @@ describe('pickup request management', () => {
   });
 
   it('rejects unavailable or expired donations', async () => {
-    mockQuery.mockResolvedValueOnce({ rows: [] });
+    mockQuery
+      .mockResolvedValueOnce({ rows: [{ id: 2, role: 'NGO', verification_status: 'VERIFIED' }] })
+      .mockResolvedValueOnce({ rows: [] });
 
     const response = await request(app)
       .post('/api/pickups')
@@ -85,6 +89,19 @@ describe('pickup request management', () => {
       .send({ donation_id: 10 });
 
     expect(response.status).toBe(404);
+  });
+
+  it('rejects pickup requests from an unverified NGO', async () => {
+    mockQuery.mockResolvedValueOnce({
+      rows: [{ id: 2, role: 'NGO', verification_status: 'PENDING' }],
+    });
+
+    const response = await request(app)
+      .post('/api/pickups')
+      .set('Authorization', `Bearer ${token('NGO', 2)}`)
+      .send({ donation_id: 10 });
+
+    expect(response.status).toBe(403);
   });
 
   it('allows the donor to approve a pending request and reserves the donation', async () => {

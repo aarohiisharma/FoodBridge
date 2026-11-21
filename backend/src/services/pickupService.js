@@ -73,6 +73,20 @@ function assertTransition(pickup, role, userId, requestedStatus, volunteerId) {
 }
 
 async function createPickup(ngoId, { donation_id, notes }) {
+  const ngoResult = await database.query(
+    `SELECT id, role, verification_status
+     FROM users
+     WHERE id = $1 AND role = 'NGO'
+     LIMIT 1`,
+    [ngoId],
+  );
+  if (
+    !ngoResult.rows[0]
+    || String(ngoResult.rows[0].verification_status).toUpperCase() !== 'VERIFIED'
+  ) {
+    throw new AppError('Your NGO account must be verified before requesting pickups', 403);
+  }
+
   const donationResult = await database.query(
     `SELECT id, donor_id, status, expiry_time
      FROM donations

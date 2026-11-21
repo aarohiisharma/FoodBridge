@@ -76,6 +76,17 @@ describe('authentication and authorization', () => {
     expect(response.status).toBe(422);
   });
 
+  it('rejects public ADMIN registration', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'Unauthorized Admin',
+      email: 'admin@example.com',
+      password: 'password123',
+      role: 'ADMIN',
+    });
+
+    expect(response.status).toBe(422);
+  });
+
   it('requires NGO organization and registration details', async () => {
     const response = await request(app).post('/api/auth/register').send({
       name: 'NGO Contact',
