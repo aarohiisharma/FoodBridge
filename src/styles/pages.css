@@ -95,6 +95,27 @@
   margin-bottom: var(--space-xl);
 }
 
+.dashboard-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.dashboard-section {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.dashboard-section h2 {
+  margin-bottom: var(--space-lg);
+  color: var(--color-primary-dark);
+}
+
 /* Stats / Summary Cards */
 .dashboard-page__cards {
   display: grid;
@@ -173,6 +194,10 @@
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .dashboard-page__header {
+    flex-direction: column;
+  }
+
   .auth-page__card {
     padding: var(--space-lg);
     box-shadow: none;
