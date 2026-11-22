@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import '../styles/components.css';
 
 /**
@@ -27,8 +28,15 @@ function InputField({
   required = false,
   disabled = false,
   className = '',
+  showPasswordToggle = false,
   ...rest
 }) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const inputType =
+    showPasswordToggle && type === 'password' && passwordVisible
+      ? 'text'
+      : type;
+
   return (
     <div className={`input-field ${error ? 'input-field--error' : ''} ${className}`}>
       {label && (
@@ -37,19 +45,31 @@ function InputField({
           {required && <span className="input-field__required">*</span>}
         </label>
       )}
-      <input
-        id={id}
-        type={type}
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        required={required}
-        disabled={disabled}
-        className="input-field__input"
-        aria-invalid={!!error}
-        aria-describedby={error ? `${id}-error` : undefined}
-        {...rest}
-      />
+      <div className="input-field__control">
+        <input
+          id={id}
+          type={inputType}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+          disabled={disabled}
+          className="input-field__input"
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
+          {...rest}
+        />
+        {showPasswordToggle && type === 'password' && (
+          <button
+            type="button"
+            className="input-field__toggle"
+            aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+            onClick={() => setPasswordVisible((visible) => !visible)}
+          >
+            {passwordVisible ? 'Hide' : 'Show'}
+          </button>
+        )}
+      </div>
       {error && (
         <p id={`${id}-error`} className="input-field__error" role="alert">
           {error}

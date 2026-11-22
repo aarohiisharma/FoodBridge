@@ -8,6 +8,7 @@ import DonorDashboard from './pages/DonorDashboard';
 import NgoDashboard from './pages/NgoDashboard';
 import VolunteerDashboard from './pages/VolunteerDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
 /**
@@ -30,6 +31,14 @@ function App() {
 
       {/* ── Protected dashboard routes ── */}
       <Route element={<DashboardLayout />}>
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/dashboard/donor"
           element={

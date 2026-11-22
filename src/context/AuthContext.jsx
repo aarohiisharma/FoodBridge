@@ -1,6 +1,15 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
+import { getCurrentUser } from '../services/authService';
 
 export const AuthContext = createContext(null);
+export const TOKEN_KEY = 'fb_token';
+export const USER_KEY = 'fb_user';
+
+function normalizeUser(user) {
+  return user
+    ? { ...user, role: user.role?.toLowerCase() }
+    : null;
+}
 
 /**
  * AuthProvider wraps the app and manages authentication state.
@@ -12,44 +21,65 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, restore any saved session from localStorage
   useEffect(() => {
-    try {
-      const savedToken = localStorage.getItem('fb_token');
-      const savedUser = localStorage.getItem('fb_user');
+    let active = true;
 
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+    async function restoreSession() {
+      const savedToken = localStorage.getItem(TOKEN_KEY);
+      const savedUser = localStorage.getItem(USER_KEY);
+
+      if (!savedToken) {
+        if (active) setLoading(false);
+        return;
       }
-    } catch (error) {
-      // If stored data is corrupted, clear it
-      console.error('Failed to restore session:', error);
-      localStorage.removeItem('fb_token');
-      localStorage.removeItem('fb_user');
-    } finally {
-      setLoading(false);
+
+      try {
+        const data = await getCurrentUser();
+        const currentUser = normalizeUser(data.user || data);
+        if (active) {
+          setToken(savedToken);
+          setUser(currentUser);
+          localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+        }
+      } catch {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+      } finally {
+        if (active) setLoading(false);
+      }
     }
+
+    restoreSession();
+    return () => {
+      active = false;
+    };
   }, []);
 
   /**
    * Save user data and token after a successful login or registration.
    */
   const login = useCallback((userData, authToken) => {
-    setUser(userData);
+    const currentUser = normalizeUser(userData);
+    setUser(currentUser);
     setToken(authToken);
-    localStorage.setItem('fb_token', authToken);
-    localStorage.setItem('fb_user', JSON.stringify(userData));
+    localStorage.setItem(TOKEN_KEY, authToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
   }, []);
 
   /**
-   * Clear all auth state and remove stored credentials.
+   * Update the cached user profile without storing sensitive credentials.
    */
+  const updateUser = useCallback((userData) => {
+    const currentUser = normalizeUser(userData);
+    setUser(currentUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+  }, []);
+
   const logout = useCallback(() => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('fb_token');
-    localStorage.removeItem('fb_user');
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }, []);
 
   const isAuthenticated = !!token && !!user;
@@ -60,6 +90,7 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated,
     login,
+    updateUser,
     logout,
   };
 

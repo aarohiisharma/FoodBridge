@@ -1,0 +1,105 @@
+name: FoodBridge CI
+
+on:
+  push:
+    branches:
+      - main
+      - 'feature/*'
+      - 'feature/**'
+      - 'feature-*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: Backend, PostgreSQL integration, and frontend tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: foodbridge_ci
+          # Ephemeral test-only password; never use for a deployed database.
+          POSTGRES_PASSWORD: foodbridge_ci_only
+          POSTGRES_DB: foodbridge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U foodbridge_ci -d foodbridge_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+
+      - name: Wait for PostgreSQL
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: foodbridge_ci
+          PGPASSWORD: foodbridge_ci_only
+        run: pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run backend Jest unit tests
+        working-directory: backend
+        run: npm test
+
+      - name: Create isolated integration test database
+        env:
+          PGHOST: localhost
+          PGPORT: 5432
+          PGUSER: foodbridge_ci
+          PGPASSWORD: foodbridge_ci_only
+        run: createdb foodbridge_integration_test
+
+      - name: Apply PostgreSQL schema
+        env:
+          TEST_DATABASE_URL: postgresql://foodbridge_ci:foodbridge_ci_only@localhost:5432/foodbridge_integration_test
+        run: psql "$TEST_DATABASE_URL" --set ON_ERROR_STOP=1 --file database/schema.sql
+
+      - name: Run backend API and PostgreSQL integration tests
+        working-directory: backend
+        env:
+          NODE_ENV: test
+          JWT_SECRET: foodbridge-ci-only-test-secret
+          TEST_DATABASE_URL: postgresql://foodbridge_ci:foodbridge_ci_only@localhost:5432/foodbridge_integration_test
+        run: npm run test:integration
+
+      - name: Run frontend Vitest tests
+        run: npm run test:run
+
+      - name: Report CI result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ]; then
+            echo "::notice title=CI result::All backend, PostgreSQL integration, and frontend tests passed."
+          else
+            echo "::error title=CI result::CI failed with status $JOB_STATUS; inspect the failed step above."
+          fi

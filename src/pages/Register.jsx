@@ -26,7 +26,10 @@ function Register() {
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     role: 'donor',
+    organizationName: '',
+    registrationDetails: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,10 +52,25 @@ function Register() {
     e.preventDefault();
     setError('');
 
-    const { name, email, password, confirmPassword, role } = formData;
+    const {
+      name,
+      email,
+      password,
+      confirmPassword,
+      phone,
+      role,
+      organizationName,
+      registrationDetails,
+    } = formData;
 
-    // Client-side validation
-    if (!name || !email || !password || !confirmPassword) {
+    if (
+      !name.trim() ||
+      !email ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      !password ||
+      !confirmPassword ||
+      !phone.trim()
+    ) {
       setError('Please fill in all fields.');
       return;
     }
@@ -60,16 +78,28 @@ function Register() {
       setError('Passwords do not match.');
       return;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (role === 'ngo' && (!organizationName.trim() || !registrationDetails.trim())) {
+      setError('Please provide your organization and registration details.');
       return;
     }
 
     try {
       setLoading(true);
-      const data = await registerUser({ name, email, password, role });
+      const data = await registerUser({
+        name,
+        email,
+        password,
+        phone,
+        role,
+        organizationName,
+        registrationDetails,
+      });
       login(data.user, data.token);
-      navigate(`/dashboard/${data.user.role}`);
+      navigate(`/dashboard/${data.user.role.toLowerCase()}`);
     } catch (err) {
       const message =
         err.response?.data?.message || 'Registration failed. Please try again.';
@@ -113,8 +143,9 @@ function Register() {
             type="password"
             value={formData.password}
             onChange={handleChange}
-            placeholder="At least 6 characters"
+            placeholder="At least 8 characters"
             required
+            showPasswordToggle
           />
           <InputField
             label="Confirm Password"
@@ -123,6 +154,16 @@ function Register() {
             value={formData.confirmPassword}
             onChange={handleChange}
             placeholder="Re-enter your password"
+            required
+            showPasswordToggle
+          />
+          <InputField
+            label="Phone Number"
+            id="register-phone"
+            type="tel"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="+1 555 123 4567"
             required
           />
 
@@ -144,6 +185,34 @@ function Register() {
               ))}
             </select>
           </div>
+
+          {formData.role === 'ngo' && (
+            <>
+              <InputField
+                label="Organization Name"
+                id="register-organizationName"
+                value={formData.organizationName}
+                onChange={handleChange}
+                required
+              />
+              <div className="input-field">
+                <label
+                  htmlFor="register-registrationDetails"
+                  className="input-field__label"
+                >
+                  Registration Details<span className="input-field__required">*</span>
+                </label>
+                <textarea
+                  id="register-registrationDetails"
+                  value={formData.registrationDetails}
+                  onChange={handleChange}
+                  className="input-field__input"
+                  rows="3"
+                  required
+                />
+              </div>
+            </>
+          )}
 
           <Button type="submit" variant="primary" loading={loading}>
             Create Account

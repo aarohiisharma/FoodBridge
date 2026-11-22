@@ -11,26 +11,45 @@ export async function loginUser(email, password) {
   return response.data;
 }
 
+export async function getCurrentUser() {
+  const response = await api.get('/auth/me');
+  return response.data;
+}
+
 /**
  * Register a new user.
  *
  * Expected backend response shape:
  *   { user: { id, name, email, role }, token: "jwt-string" }
  */
-export async function registerUser({ name, email, password, role }) {
+export async function registerUser({
+  name,
+  email,
+  password,
+  phone,
+  role,
+  organizationName,
+  registrationDetails,
+}) {
   const response = await api.post('/auth/register', {
     name,
     email,
     password,
-    role,
+    phone,
+    role: role.toUpperCase(),
+    ...(role === 'ngo' && {
+      ngoOrganizationName: organizationName,
+      ngoRegistrationNumber: registrationDetails,
+    }),
   });
   return response.data;
 }
 
-/**
- * Log out the current user (server-side session invalidation).
- */
-export async function logoutUser() {
-  const response = await api.post('/auth/logout');
+export async function updateProfile(profile) {
+  const response = await api.put('/users/profile', {
+    name: profile.name,
+    ...(profile.phone !== undefined && { phone: profile.phone }),
+    ...(profile.address !== undefined && { address: profile.address }),
+  });
   return response.data;
 }

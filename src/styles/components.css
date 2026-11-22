@@ -125,6 +125,26 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.input-field__control {
+  position: relative;
+}
+
+.input-field__control .input-field__input {
+  padding-right: 4.5rem;
+}
+
+.input-field__toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-sm);
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .input-field__input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.15);
@@ -313,6 +333,158 @@
 .error-message__retry-btn:hover {
   background-color: var(--color-error);
   color: #ffffff;
+}
+
+/* ===== Donation dashboard ===== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.status-badge--available,
+.status-badge--approved,
+.status-badge--completed {
+  background: var(--color-success-light);
+  color: var(--color-primary-dark);
+}
+
+.status-badge--pending,
+.status-badge--claimed,
+.status-badge--assigned,
+.status-badge--accepted,
+.status-badge--in_transit {
+  background: #fff3cd;
+  color: #7a5700;
+}
+
+.status-badge--expired,
+.status-badge--rejected,
+.status-badge--cancelled {
+  background: var(--color-error-light);
+  color: var(--color-error);
+}
+
+.donation-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.donation-form__full {
+  grid-column: 1 / -1;
+}
+
+.donation-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.donation-form__field label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.donation-form__field select,
+.donation-form__field textarea {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.donation-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.donation-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.donation-list__empty {
+  padding: var(--space-lg);
+  text-align: center;
+  color: var(--color-text-light);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.donation-card {
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.donation-card__image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+.donation-card__body {
+  padding: var(--space-md);
+}
+
+.donation-card__header,
+.pickup-request-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.donation-card__header h3,
+.pickup-request-card__header h3 {
+  margin: 0;
+  color: var(--color-primary-dark);
+}
+
+.donation-card__quantity {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.donation-card__description {
+  color: var(--color-text-light);
+}
+
+.donation-card__actions,
+.pickup-request-card__actions {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.pickup-request-list {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.pickup-request-card {
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.pickup-request-card__notes {
+  margin: var(--space-xs) 0 0;
+  color: var(--color-text-light);
 }
 
 /* ===== Responsive: Mobile ===== */
