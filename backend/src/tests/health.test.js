@@ -1,6 +1,11 @@
 process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret';
 
+jest.mock('../config/database', () => ({
+  pool: { end: jest.fn(), connect: jest.fn() },
+  query: jest.fn().mockResolvedValue({ rows: [{ '?column?': 1 }] }),
+}));
+
 const request = require('supertest');
 const app = require('../app');
 

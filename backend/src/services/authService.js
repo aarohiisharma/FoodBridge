@@ -32,7 +32,50 @@ async function register({ name, email, password, phone, role, ngoOrganizationNam
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const client = await database.pool.connect();
+  let client = null;
+  if (database.pool && typeof database.pool.connect === 'function') {
+    client = await database.pool.connect();
+  }
+
+  if (!client || typeof client.query !== 'function') {
+    const existing = await database.query(
+      'SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1',
+      [email],
+    );
+    if (existing.rows.length > 0) {
+      throw new AppError('Email is already registered', 409);
+    }
+
+    try {
+      const created = await database.query(
+        `INSERT INTO users
+          (name, email, password_hash, phone, role)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, name, email, role, phone, created_at`,
+        [name, email, passwordHash, phone || null, normalizedRole],
+      );
+
+      if (normalizedRole === 'NGO') {
+        await database.query(
+          `INSERT INTO ngo_profiles
+            (user_id, organization_name, registration_number)
+           VALUES ($1, $2, $3)`,
+          [created.rows[0].id, ngoOrganizationName, ngoRegistrationNumber],
+        );
+      }
+
+      const user = toPublicUser(created.rows[0]);
+      return {
+        user,
+        token: signToken({ id: user.id, email: user.email, role: user.role }),
+      };
+    } catch (error) {
+      if (error.code === '23505') {
+        throw new AppError('Email is already registered', 409);
+      }
+      throw error;
+    }
+  }
 
   try {
     await client.query('BEGIN');
@@ -81,7 +124,9 @@ async function register({ name, email, password, phone, role, ngoOrganizationNam
     }
     throw error;
   } finally {
-    client.release();
+    if (typeof client.release === 'function') {
+      client.release();
+    }
   }
 }
 
