@@ -1,3 +1,3 @@
 const app = require('../backend/src/app');
 
-module.exports = app;
+module.exports = (request, response) => app(request, response);
