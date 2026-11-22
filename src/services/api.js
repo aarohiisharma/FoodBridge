@@ -9,7 +9,7 @@ import axios from 'axios';
  *   stored credentials and redirecting to the login page.
  */
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || '',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,6 +18,12 @@ const api = axios.create({
 // ── Request Interceptor ─────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
+    const configuredBaseUrl = import.meta.env.VITE_API_URL || '';
+    if (configuredBaseUrl.endsWith('/api') && config.url?.startsWith('/api/')) {
+      config.url = config.url.slice(4);
+    } else if (!configuredBaseUrl && config.url && !config.url.startsWith('/api/')) {
+      config.url = `/api${config.url.startsWith('/') ? '' : '/'}${config.url}`;
+    }
     const token = localStorage.getItem('fb_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
