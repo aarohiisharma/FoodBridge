@@ -62,7 +62,7 @@ function account(role, index = 1) {
 }
 
 async function registerAccount(user) {
-  return request(app)
+  const registration = await request(app)
     .post('/api/auth/register')
     .send({
       name: user.name,
@@ -76,6 +76,17 @@ async function registerAccount(user) {
         }
         : {}),
     });
+
+  if (registration.status === 201 && user.role === 'NGO') {
+    await database.query(
+      `UPDATE ngo_profiles
+       SET verification_status = 'VERIFIED', updated_at = NOW()
+       WHERE user_id = $1`,
+      [registration.body.user.id],
+    );
+  }
+
+  return registration;
 }
 
 async function loginAccount(user) {
