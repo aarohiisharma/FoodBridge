@@ -3,7 +3,21 @@ const AppError = require('../utils/AppError');
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || env.corsOrigins.length === 0 || env.corsOrigins.includes(origin)) {
+    const originUrl = origin ? new URL(origin) : null;
+    const isLocalOrigin =
+      originUrl
+      && ['localhost', '127.0.0.1'].includes(originUrl.hostname);
+    const isVercelOrigin =
+      originUrl
+      && originUrl.hostname.endsWith('.vercel.app');
+
+    if (
+      !origin
+      || env.corsOrigins.length === 0
+      || env.corsOrigins.includes(origin)
+      || isLocalOrigin
+      || isVercelOrigin
+    ) {
       callback(null, true);
       return;
     }
