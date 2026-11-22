@@ -18,20 +18,23 @@ async function getStats() {
 
 async function getRegisteredUsers() {
   const result = await database.query(
-    `SELECT id, name, email, role, phone, address, verification_status, created_at
-     FROM users
-     ORDER BY created_at DESC`,
+    `SELECT u.id, u.name, u.email, u.role, u.phone, u.address,
+       np.verification_status, u.created_at
+     FROM users u
+     LEFT JOIN ngo_profiles np ON np.user_id = u.id
+     ORDER BY u.created_at DESC`,
   );
   return result.rows;
 }
 
 async function getNgos() {
   const result = await database.query(
-    `SELECT id, name, email, role, organization_name, registration_number,
-       verification_status, phone, address, created_at
-     FROM users
-     WHERE role = 'NGO'
-     ORDER BY created_at DESC`,
+    `SELECT u.id, u.name, u.email, u.role, np.organization_name,
+       np.registration_number, np.verification_status, u.phone, u.address, u.created_at
+     FROM users u
+     JOIN ngo_profiles np ON np.user_id = u.id
+     WHERE u.role = 'NGO'
+     ORDER BY u.created_at DESC`,
   );
   return result.rows;
 }
@@ -60,11 +63,11 @@ async function updateNgoVerification(ngoId, status) {
       : 'PENDING';
 
   const result = await database.query(
-    `UPDATE users
+    `UPDATE ngo_profiles
      SET verification_status = $1, updated_at = NOW()
-     WHERE id = $2 AND role = 'NGO'
-     RETURNING id, name, email, role, organization_name, registration_number,
-       verification_status, phone, address, created_at`,
+     WHERE user_id = $2
+     RETURNING user_id AS id, organization_name, registration_number,
+       verification_status, updated_at`,
     [verificationStatus, ngoId],
   );
   if (!result.rows[0]) {

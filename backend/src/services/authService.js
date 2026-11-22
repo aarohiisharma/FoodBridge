@@ -41,35 +41,48 @@ async function register({ name, email, password, role, ngoOrganizationName, ngoR
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  let created;
+  const client = normalizedRole === 'NGO' ? await database.pool.connect() : null;
+  const query = client ? client.query.bind(client) : database.query;
 
   try {
-    created = await database.query(
+    if (client) await client.query('BEGIN');
+    const created = await query(
       `INSERT INTO users
-        (name, email, password_hash, role, organization_name, registration_number)
-       VALUES ($1, $2, $3, $4, $5, $6)
+        (name, email, password_hash, role)
+       VALUES ($1, $2, $3, $4)
        RETURNING id, name, email, role, phone, address, created_at`,
       [
         name,
         email,
         passwordHash,
         normalizedRole,
-        normalizedRole === 'NGO' ? ngoOrganizationName : null,
-        normalizedRole === 'NGO' ? ngoRegistrationNumber : null,
       ],
     );
+
+    if (normalizedRole === 'NGO') {
+      await query(
+        `INSERT INTO ngo_profiles (user_id, organization_name, registration_number)
+         VALUES ($1, $2, $3)`,
+        [created.rows[0].id, ngoOrganizationName, ngoRegistrationNumber],
+      );
+    }
+
+    if (client) await client.query('COMMIT');
+
+    const user = toPublicUser(created.rows[0]);
+    return {
+      user,
+      token: signToken({ id: user.id, email: user.email, role: user.role }),
+    };
   } catch (error) {
+    if (client) await client.query('ROLLBACK');
     if (error.code === '23505') {
       throw new AppError('Email is already registered', 409);
     }
     throw error;
+  } finally {
+    if (client) client.release();
   }
-
-  const user = toPublicUser(created.rows[0]);
-  return {
-    user,
-    token: signToken({ id: user.id, email: user.email, role: user.role }),
-  };
 }
 
 async function login(email, password) {
