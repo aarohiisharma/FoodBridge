@@ -270,6 +270,17 @@ async function updatePickupStatus(id, user, requestedStatus, volunteerId) {
 
   let result;
   if (requestedStatus === 'ASSIGNED') {
+    const volunteerResult = await database.query(
+      `SELECT id, role
+       FROM users
+       WHERE id = $1 AND role = 'VOLUNTEER'
+       LIMIT 1`,
+      [volunteerId],
+    );
+    if (!volunteerResult.rows[0]) {
+      throw new AppError('The selected user is not a valid volunteer', 422);
+    }
+
     result = await database.query(
       `UPDATE pickup_requests
        SET status = 'ASSIGNED', volunteer_id = $1, updated_at = NOW()

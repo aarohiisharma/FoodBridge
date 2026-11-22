@@ -154,6 +154,7 @@ describe('pickup request management', () => {
   it('allows the donor to assign an approved pickup to a volunteer', async () => {
     mockQuery
       .mockResolvedValueOnce({ rows: [{ ...pickup, status: 'APPROVED' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 3, role: 'VOLUNTEER' }] })
       .mockResolvedValueOnce({ rows: [{ ...pickup, status: 'ASSIGNED', volunteer_id: 3 }] });
 
     const response = await request(app)
