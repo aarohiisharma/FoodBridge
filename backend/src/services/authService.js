@@ -21,60 +21,73 @@ function toPublicUser(row) {
     email: user.email,
     role: String(user.role || '').toUpperCase(),
     phone: user.phone || null,
-    address: user.address || null,
     created_at: user.created_at,
   };
 }
 
-async function register({ name, email, password, role, ngoOrganizationName, ngoRegistrationNumber }) {
+async function register({ name, email, password, phone, role, ngoOrganizationName, ngoRegistrationNumber }) {
   const normalizedRole = String(role).toUpperCase();
   if (!ALLOWED_ROLES.has(normalizedRole)) {
     throw new AppError('Invalid role', 422);
   }
 
-  const existing = await database.query(
-    'SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1',
-    [email],
-  );
-  if (existing.rows.length > 0) {
-    throw new AppError('Email is already registered', 409);
-  }
-
   const passwordHash = await bcrypt.hash(password, 12);
-  let created;
+  const client = await database.pool.connect();
 
   try {
-    created = await database.query(
+    await client.query('BEGIN');
+    const existing = await client.query(
+      'SELECT id FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1',
+      [email],
+    );
+    if (existing.rows.length > 0) {
+      await client.query('ROLLBACK');
+      throw new AppError('Email is already registered', 409);
+    }
+
+    const created = await client.query(
       `INSERT INTO users
-        (name, email, password_hash, role, organization_name, registration_number)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, name, email, role, phone, address, created_at`,
+        (name, email, password_hash, phone, role)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, name, email, role, phone, created_at`,
       [
         name,
         email,
         passwordHash,
+        phone || null,
         normalizedRole,
-        normalizedRole === 'NGO' ? ngoOrganizationName : null,
-        normalizedRole === 'NGO' ? ngoRegistrationNumber : null,
       ],
     );
+
+    if (normalizedRole === 'NGO') {
+      await client.query(
+        `INSERT INTO ngo_profiles
+          (user_id, organization_name, registration_number)
+         VALUES ($1, $2, $3)`,
+        [created.rows[0].id, ngoOrganizationName, ngoRegistrationNumber],
+      );
+    }
+
+    await client.query('COMMIT');
+    const user = toPublicUser(created.rows[0]);
+    return {
+      user,
+      token: signToken({ id: user.id, email: user.email, role: user.role }),
+    };
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     if (error.code === '23505') {
       throw new AppError('Email is already registered', 409);
     }
     throw error;
+  } finally {
+    client.release();
   }
-
-  const user = toPublicUser(created.rows[0]);
-  return {
-    user,
-    token: signToken({ id: user.id, email: user.email, role: user.role }),
-  };
 }
 
 async function login(email, password) {
   const result = await database.query(
-    `SELECT id, name, email, password_hash, role, phone, address, created_at
+    `SELECT id, name, email, password_hash, role, phone, created_at
      FROM users
      WHERE LOWER(email) = LOWER($1)
      LIMIT 1`,
@@ -95,7 +108,7 @@ async function login(email, password) {
 
 async function getProfile(userId) {
   const result = await database.query(
-    `SELECT id, name, email, role, phone, address, created_at
+    `SELECT id, name, email, role, phone, created_at
      FROM users
      WHERE id = $1
      LIMIT 1`,
@@ -113,7 +126,7 @@ async function updateProfile(userId, updates) {
   const fields = [];
   const values = [];
 
-  for (const field of ['name', 'phone', 'address']) {
+  for (const field of ['name', 'phone']) {
     if (Object.prototype.hasOwnProperty.call(updates, field)) {
       values.push(updates[field]);
       fields.push(`${field} = $${values.length}`);
@@ -129,7 +142,7 @@ async function updateProfile(userId, updates) {
     `UPDATE users
      SET ${fields.join(', ')}, updated_at = NOW()
      WHERE id = $${values.length}
-     RETURNING id, name, email, role, phone, address, created_at`,
+     RETURNING id, name, email, role, phone, created_at`,
     values,
   );
 
