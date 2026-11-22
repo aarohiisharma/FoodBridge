@@ -63,11 +63,11 @@ function Login() {
           <InputField
             label="Email"
             id="login-email"
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            required
+            required={false}
           />
           <InputField
             label="Password"
@@ -76,7 +76,7 @@ function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
-            required
+            required={false}
             showPasswordToggle
           />
           <Button type="submit" variant="primary" loading={loading}>

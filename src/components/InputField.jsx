@@ -57,6 +57,7 @@ function InputField({
           className="input-field__input"
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
+          aria-label={rest['aria-label'] || label || undefined}
           {...rest}
         />
         {showPasswordToggle && type === 'password' && (

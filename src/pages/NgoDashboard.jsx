@@ -287,7 +287,7 @@ function NgoDashboard() {
             </div>
           ) : (
             <div className="donation-list__empty">
-              <p>No donations match your filters.</p>
+              <p>No donations match your filters</p>
             </div>
           )}
         </section>

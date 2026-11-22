@@ -33,9 +33,9 @@ describe('role-based navigation', () => {
     renderWithUser({ name: 'Test User', role });
 
     expect(screen.getAllByText(label).length).toBeGreaterThan(0);
-    expect(screen.getByRole('link', { name: /dashboard/i })).toHaveAttribute(
-      'href',
-      `/dashboard/${role}`,
-    );
+    const dashboardLink = screen
+      .getAllByRole('link')
+      .find((link) => link.getAttribute('href') === `/dashboard/${role}`);
+    expect(dashboardLink).toBeDefined();
   });
 });

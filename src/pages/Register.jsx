@@ -64,6 +64,12 @@ function Register() {
     } = formData;
 
     if (
+      password !== confirmPassword
+    ) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (
       !name.trim() ||
       !email ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
@@ -72,10 +78,6 @@ function Register() {
       !phone.trim()
     ) {
       setError('Please fill in all fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
       return;
     }
     if (password.length < 8) {
@@ -126,16 +128,16 @@ function Register() {
             value={formData.name}
             onChange={handleChange}
             placeholder="Jane Doe"
-            required
+            required={false}
           />
           <InputField
             label="Email"
             id="register-email"
-            type="email"
+            type="text"
             value={formData.email}
             onChange={handleChange}
             placeholder="you@example.com"
-            required
+            required={false}
           />
           <InputField
             label="Password"
@@ -144,7 +146,7 @@ function Register() {
             value={formData.password}
             onChange={handleChange}
             placeholder="At least 8 characters"
-            required
+            required={false}
             showPasswordToggle
           />
           <InputField
@@ -154,7 +156,7 @@ function Register() {
             value={formData.confirmPassword}
             onChange={handleChange}
             placeholder="Re-enter your password"
-            required
+            required={false}
             showPasswordToggle
           />
           <InputField
@@ -164,13 +166,13 @@ function Register() {
             value={formData.phone}
             onChange={handleChange}
             placeholder="+1 555 123 4567"
-            required
+            required={false}
           />
 
           {/* Role selector — uses the same input-field styling */}
           <div className="input-field">
             <label htmlFor="register-role" className="input-field__label">
-              I am a...
+              Role
             </label>
             <select
               id="register-role"

@@ -27,7 +27,7 @@ describe('Login page', () => {
   it('renders email and password fields', () => {
     renderWithProviders(<Login />);
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^password/i)).toBeInTheDocument();
   });
 
   it('renders a Log In button', () => {
