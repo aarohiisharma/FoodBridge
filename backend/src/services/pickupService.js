@@ -74,9 +74,10 @@ function assertTransition(pickup, role, userId, requestedStatus, volunteerId) {
 
 async function createPickup(ngoId, { donation_id, notes }) {
   const ngoResult = await database.query(
-    `SELECT id, role, verification_status
-     FROM users
-     WHERE id = $1 AND role = 'NGO'
+    `SELECT u.id, u.role, np.verification_status
+     FROM users u
+     JOIN ngo_profiles np ON np.user_id = u.id
+     WHERE u.id = $1 AND u.role = 'NGO'
      LIMIT 1`,
     [ngoId],
   );
