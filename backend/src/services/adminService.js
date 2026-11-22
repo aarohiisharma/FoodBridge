@@ -18,7 +18,7 @@ async function getStats() {
 
 async function getRegisteredUsers() {
   const result = await database.query(
-    `SELECT u.id, u.name, u.email, u.role, u.phone, u.address,
+    `SELECT u.id, u.name, u.email, u.role, u.phone,
        np.verification_status, u.created_at
      FROM users u
      LEFT JOIN ngo_profiles np ON np.user_id = u.id
@@ -30,7 +30,7 @@ async function getRegisteredUsers() {
 async function getNgos() {
   const result = await database.query(
     `SELECT u.id, u.name, u.email, u.role, np.organization_name,
-       np.registration_number, np.verification_status, u.phone, u.address, u.created_at
+       np.registration_number, np.verification_status, u.phone, u.created_at
      FROM users u
      JOIN ngo_profiles np ON np.user_id = u.id
      WHERE u.role = 'NGO'

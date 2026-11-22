@@ -21,7 +21,7 @@ function toPublicUser(row) {
     email: user.email,
     role: String(user.role || '').toUpperCase(),
     phone: user.phone || null,
-    address: user.address || null,
+    address: null,
     created_at: user.created_at,
   };
 }
@@ -50,7 +50,7 @@ async function register({ name, email, password, role, ngoOrganizationName, ngoR
       `INSERT INTO users
         (name, email, password_hash, role)
        VALUES ($1, $2, $3, $4)
-       RETURNING id, name, email, role, phone, address, created_at`,
+       RETURNING id, name, email, role, phone, created_at`,
       [
         name,
         email,
@@ -87,7 +87,7 @@ async function register({ name, email, password, role, ngoOrganizationName, ngoR
 
 async function login(email, password) {
   const result = await database.query(
-    `SELECT id, name, email, password_hash, role, phone, address, created_at
+    `SELECT id, name, email, password_hash, role, phone, created_at
      FROM users
      WHERE LOWER(email) = LOWER($1)
      LIMIT 1`,
@@ -108,7 +108,7 @@ async function login(email, password) {
 
 async function getProfile(userId) {
   const result = await database.query(
-    `SELECT id, name, email, role, phone, address, created_at
+    `SELECT id, name, email, role, phone, created_at
      FROM users
      WHERE id = $1
      LIMIT 1`,
@@ -126,7 +126,7 @@ async function updateProfile(userId, updates) {
   const fields = [];
   const values = [];
 
-  for (const field of ['name', 'phone', 'address']) {
+  for (const field of ['name', 'phone']) {
     if (Object.prototype.hasOwnProperty.call(updates, field)) {
       values.push(updates[field]);
       fields.push(`${field} = $${values.length}`);
@@ -142,7 +142,7 @@ async function updateProfile(userId, updates) {
     `UPDATE users
      SET ${fields.join(', ')}, updated_at = NOW()
      WHERE id = $${values.length}
-     RETURNING id, name, email, role, phone, address, created_at`,
+     RETURNING id, name, email, role, phone, created_at`,
     values,
   );
 
