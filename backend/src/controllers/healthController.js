@@ -1,7 +1,11 @@
 const healthService = require('../services/healthService');
 
-function getHealth(request, response) {
-  response.status(200).json(healthService.getStatus());
+async function getHealth(request, response, next) {
+  try {
+    response.status(200).json(await healthService.getStatus());
+  } catch (error) {
+    next(error);
+  }
 }
 
 module.exports = { getHealth };
