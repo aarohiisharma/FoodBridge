@@ -7,7 +7,7 @@ async function getAvailableTasks() {
     `SELECT *
      FROM pickup_requests
      WHERE status = 'APPROVED' AND volunteer_id IS NULL
-     ORDER BY updated_at DESC, created_at DESC`,
+    ORDER BY updated_at DESC, requested_at DESC`,
   );
   return result.rows;
 }
@@ -17,7 +17,7 @@ async function getAssignedTasks(volunteerId) {
     `SELECT *
      FROM pickup_requests
      WHERE volunteer_id = $1
-     ORDER BY updated_at DESC, created_at DESC`,
+    ORDER BY updated_at DESC, requested_at DESC`,
     [volunteerId],
   );
   return result.rows;
