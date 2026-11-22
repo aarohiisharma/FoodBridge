@@ -139,7 +139,7 @@ describe('NgoDashboard', () => {
     api.delete.mockResolvedValue({ data: { success: true } });
     render(<NgoDashboard />);
 
-    await user.click(await screen.findByRole('button', { name: /pickups/i }));
+    await user.click(await screen.findByRole('tab', { name: /my pickups/i }));
     const pendingCard = (await screen.findByText('Pending request')).closest('.pickup-request-card');
     await user.click(within(pendingCard).getByRole('button', { name: /cancel/i }));
     await waitFor(() => expect(api.delete).toHaveBeenCalledWith('/api/pickups/2'));
@@ -165,6 +165,6 @@ describe('NgoDashboard', () => {
     });
     render(<NgoDashboard />);
 
-    expect(await screen.findByText('No donations match your filters')).toBeInTheDocument();
+    expect(await screen.findByText(/no donations match/i)).toBeInTheDocument();
   });
 });
