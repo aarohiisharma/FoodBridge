@@ -59,7 +59,7 @@ function Login() {
 
         <ErrorMessage message={error} />
 
-        <form onSubmit={handleSubmit} className="auth-page__form">
+        <form onSubmit={handleSubmit} className="auth-page__form" noValidate>
           <InputField
             label="Email"
             id="login-email"

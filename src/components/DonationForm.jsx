@@ -126,6 +126,7 @@ function DonationForm({ donation = null, onSubmit, onCancel, submitting = false 
           id="donation-quantity"
           name="quantity"
           type="number"
+          aria-label="Quantity"
           min="0"
           step="any"
           value={values.quantity}

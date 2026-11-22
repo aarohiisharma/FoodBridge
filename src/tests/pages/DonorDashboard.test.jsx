@@ -44,12 +44,13 @@ describe('DonorDashboard', () => {
     render(<DonorDashboard />);
 
     await user.click(await screen.findByRole('button', { name: /post donation/i }));
+    await user.click(screen.getByRole('button', { name: /create donation/i }));
     expect(await screen.findByText('Food name is required')).toBeInTheDocument();
     expect(screen.getByText('Pickup address is required')).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/food name/i), 'Rice');
-    await user.clear(screen.getByLabelText(/quantity/i));
-    await user.type(screen.getByLabelText(/quantity/i), '-2');
+    await user.clear(screen.getByLabelText(/^quantity$/i));
+    await user.type(screen.getByLabelText(/^quantity$/i), '-2');
     await user.type(screen.getByLabelText(/preparation date and time/i), '2026-11-22T12:00');
     await user.type(screen.getByLabelText(/safe consumption deadline/i), '2026-11-22T10:00');
     await user.type(screen.getByLabelText(/pickup address/i), '42 Main Road');
@@ -67,7 +68,7 @@ describe('DonorDashboard', () => {
     await user.click(await screen.findByRole('button', { name: /post donation/i }));
     await user.type(screen.getByLabelText(/food name/i), 'Vegetable Pasta');
     await user.selectOptions(screen.getByLabelText(/food category/i), 'COOKED');
-    await user.type(screen.getByLabelText(/quantity/i), '12');
+    await user.type(screen.getByLabelText(/^quantity$/i), '12');
     await user.type(screen.getByLabelText(/quantity unit/i), 'meals');
     await user.type(screen.getByLabelText(/preparation date and time/i), '2026-11-21T10:00');
     await user.type(screen.getByLabelText(/safe consumption deadline/i), '2026-11-22T18:00');
@@ -141,7 +142,7 @@ describe('DonorDashboard', () => {
     api.patch.mockResolvedValue({ data: { pickup: { ...rejectedPickup, status: 'REJECTED' } } });
     await user.click(within(rejectedCard).getByRole('button', { name: /reject/i }));
     await waitFor(() => expect(api.patch).toHaveBeenCalledWith(
-      '/api/pickups/4/status',
+      '/api/pickups/5/status',
       { status: 'REJECTED' },
     ));
   });

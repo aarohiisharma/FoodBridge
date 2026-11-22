@@ -1,0 +1,63 @@
+name: Backend tests
+
+on:
+  push:
+    branches:
+      - main
+      - feature/**
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  jest-supertest:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Health tests
+            test-file: src/tests/health.test.js
+          - name: Auth registration tests
+            test-file: src/tests/auth-registration.test.js
+          - name: Auth login tests
+            test-file: src/tests/auth-login.test.js
+          - name: Auth profile tests
+            test-file: src/tests/auth-profile.test.js
+          - name: Donation CRUD tests
+            test-file: src/tests/donation-crud.test.js
+          - name: Donation search tests
+            test-file: src/tests/donation-search.test.js
+          - name: Pickup request tests
+            test-file: src/tests/pickup-request.test.js
+          - name: Pickup status tests
+            test-file: src/tests/pickup-status.test.js
+          - name: Volunteer tests
+            test-file: src/tests/volunteer.test.js
+          - name: Admin tests
+            test-file: src/tests/admin.test.js
+          - name: Notification tests
+            test-file: src/tests/notification.test.js
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        run: npm ci
+
+      - name: Run backend tests
+        run: npx jest --runInBand --ci ${{ matrix.test-file }}

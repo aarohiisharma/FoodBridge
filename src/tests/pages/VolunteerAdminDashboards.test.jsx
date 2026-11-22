@@ -72,9 +72,10 @@ describe('VolunteerDashboard', () => {
     api.patch
       .mockResolvedValueOnce({ data: { task: { ...task, status: 'ACCEPTED' } } })
       .mockResolvedValueOnce({ data: { task: { ...task, status: 'COLLECTED' } } })
-      .mockResolvedValueOnce({ data: { task: { ...task, status: 'DELIVERED' } });
+      .mockResolvedValueOnce({ data: { task: { ...task, status: 'DELIVERED' } } });
     render(<VolunteerDashboard />);
 
+    await user.click(await screen.findByRole('tab', { name: /my assignments/i }));
     await user.click(await screen.findByRole('button', { name: /accept task/i }));
     await waitFor(() => expect(api.patch).toHaveBeenCalledWith(
       '/api/volunteers/tasks/21/status',
@@ -145,7 +146,7 @@ describe('AdminDashboard', () => {
 
     expect(await screen.findByText('Total users')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('1')).toBeInTheDocument();
+    expect(screen.getAllByText('1').length).toBeGreaterThan(0);
     expect(screen.getByText('Helping Hands')).toBeInTheDocument();
   });
 

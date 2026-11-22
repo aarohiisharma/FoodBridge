@@ -74,9 +74,10 @@ function assertTransition(pickup, role, userId, requestedStatus, volunteerId) {
 
 async function createPickup(ngoId, { donation_id, notes }) {
   const ngoResult = await database.query(
-    `SELECT id, role, verification_status
-     FROM users
-     WHERE id = $1 AND role = 'NGO'
+    `SELECT u.id, u.role, np.verification_status
+     FROM users u
+     JOIN ngo_profiles np ON np.user_id = u.id
+     WHERE u.id = $1 AND u.role = 'NGO'
      LIMIT 1`,
     [ngoId],
   );
@@ -114,12 +115,13 @@ async function createPickup(ngoId, { donation_id, notes }) {
   const donation = donationResult.rows[0];
   const result = await database.query(
     `INSERT INTO pickup_requests
-      (donation_id, ngo_id, donor_id, volunteer_id, status, notes)
-     VALUES ($1, $2, $3, NULL, 'PENDING', $4)
-     RETURNING id, donation_id, ngo_id, donor_id, volunteer_id, status, notes, created_at, updated_at`,
-    [donation_id, ngoId, donation.donor_id, notes || null],
+      (donation_id, ngo_id, volunteer_id, status, notes)
+     VALUES ($1, $2, NULL, 'PENDING', $3)
+     RETURNING id, donation_id, ngo_id, volunteer_id, status, notes,
+       requested_at, updated_at`,
+    [donation_id, ngoId, notes || null],
   );
-  const pickup = result.rows[0];
+  const pickup = { ...result.rows[0], donor_id: donation.donor_id, created_at: result.rows[0].requested_at };
   await notificationService.createNotification(
     donation.donor_id,
     'PICKUP_REQUEST',
@@ -136,13 +138,21 @@ async function listPickups(user) {
   let values = [user.id];
 
   if (role === 'NGO') {
-    query = 'SELECT * FROM pickup_requests WHERE ngo_id = $1 ORDER BY created_at DESC';
+    query = `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+      FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+      WHERE pr.ngo_id = $1 ORDER BY pr.requested_at DESC`;
   } else if (role === 'DONOR') {
-    query = 'SELECT * FROM pickup_requests WHERE donor_id = $1 ORDER BY created_at DESC';
+    query = `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+      FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+      WHERE d.donor_id = $1 ORDER BY pr.requested_at DESC`;
   } else if (role === 'VOLUNTEER') {
-    query = 'SELECT * FROM pickup_requests WHERE volunteer_id = $1 ORDER BY created_at DESC';
+    query = `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+      FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+      WHERE pr.volunteer_id = $1 ORDER BY pr.requested_at DESC`;
   } else if (role === 'ADMIN') {
-    query = 'SELECT * FROM pickup_requests ORDER BY created_at DESC';
+    query = `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+      FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+      ORDER BY pr.requested_at DESC`;
     values = [];
   } else {
     throw new AppError('Your role cannot view pickup requests', 403);
@@ -156,7 +166,9 @@ async function listPickups(user) {
 
 async function getPickupById(id) {
   const result = await database.query(
-    'SELECT * FROM pickup_requests WHERE id = $1 LIMIT 1',
+    `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+     FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+     WHERE pr.id = $1 LIMIT 1`,
     [id],
   );
   if (!result.rows[0]) {
@@ -172,7 +184,9 @@ async function approvePickup(id, donorId) {
     await client.query('BEGIN');
 
     const pickupResult = await client.query(
-      'SELECT * FROM pickup_requests WHERE id = $1 FOR UPDATE',
+      `SELECT pr.*, d.donor_id, pr.requested_at AS created_at
+       FROM pickup_requests pr JOIN donations d ON d.id = pr.donation_id
+       WHERE pr.id = $1 FOR UPDATE`,
       [id],
     );
     if (!pickupResult.rows[0]) {
@@ -246,6 +260,20 @@ async function updatePickupStatus(id, user, requestedStatus, volunteerId) {
 
   let result;
   if (requestedStatus === 'ASSIGNED') {
+    const volunteer = await database.query(
+      `SELECT id, role
+       FROM users
+       WHERE id = $1
+       LIMIT 1`,
+      [volunteerId],
+    );
+    if (
+      !volunteer.rows[0]
+      || String(volunteer.rows[0].role).toUpperCase() !== 'VOLUNTEER'
+    ) {
+      throw new AppError('Volunteer ID must belong to a volunteer account', 422);
+    }
+
     result = await database.query(
       `UPDATE pickup_requests
        SET status = 'ASSIGNED', volunteer_id = $1, updated_at = NOW()

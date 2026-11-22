@@ -31,8 +31,6 @@ const profileValidation = validate([
     .isLength({ max: 100 }).withMessage('Name must be 100 characters or fewer'),
   body('phone').optional({ nullable: true }).trim().isLength({ max: 30 })
     .withMessage('Phone must be 30 characters or fewer'),
-  body('address').optional({ nullable: true }).trim().isLength({ max: 255 })
-    .withMessage('Address must be 255 characters or fewer'),
 ]);
 
 module.exports = { registerValidation, loginValidation, profileValidation };

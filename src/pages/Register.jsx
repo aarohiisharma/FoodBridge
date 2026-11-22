@@ -63,6 +63,10 @@ function Register() {
       registrationDetails,
     } = formData;
 
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     if (
       !name.trim() ||
       !email ||
@@ -72,10 +76,6 @@ function Register() {
       !phone.trim()
     ) {
       setError('Please fill in all fields.');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
       return;
     }
     if (password.length < 8) {
@@ -119,7 +119,7 @@ function Register() {
 
         <ErrorMessage message={error} />
 
-        <form onSubmit={handleSubmit} className="auth-page__form">
+        <form onSubmit={handleSubmit} className="auth-page__form" noValidate>
           <InputField
             label="Full Name"
             id="register-name"
@@ -170,7 +170,7 @@ function Register() {
           {/* Role selector — uses the same input-field styling */}
           <div className="input-field">
             <label htmlFor="register-role" className="input-field__label">
-              I am a...
+              Role
             </label>
             <select
               id="register-role"
