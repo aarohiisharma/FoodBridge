@@ -50,11 +50,20 @@ describe('pickup approval and status transitions', () => {
 
   it('allows the donor to assign an approved pickup', async () => {
     mockQuery.mockResolvedValueOnce({ rows: [{ ...pickup, status: 'APPROVED' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 3, role: 'VOLUNTEER' }] })
       .mockResolvedValueOnce({ rows: [{ ...pickup, status: 'ASSIGNED', volunteer_id: 3 }] });
     const response = await request(app).patch('/api/pickups/20/status')
       .set('Authorization', `Bearer ${token('DONOR', 1)}`).send({ status: 'ASSIGNED', volunteer_id: 3 });
     expect(response.status).toBe(200);
     expect(response.body.pickup.volunteer_id).toBe(3);
+  });
+
+  it('rejects assignment to a non-volunteer user', async () => {
+    mockQuery.mockResolvedValueOnce({ rows: [{ ...pickup, status: 'APPROVED' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 1, role: 'DONOR' }] });
+    const response = await request(app).patch('/api/pickups/20/status')
+      .set('Authorization', `Bearer ${token('DONOR', 1)}`).send({ status: 'ASSIGNED', volunteer_id: 1 });
+    expect(response.status).toBe(422);
   });
 
   it('allows only the assigned volunteer to accept', async () => {

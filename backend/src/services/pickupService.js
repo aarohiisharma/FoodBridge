@@ -260,6 +260,20 @@ async function updatePickupStatus(id, user, requestedStatus, volunteerId) {
 
   let result;
   if (requestedStatus === 'ASSIGNED') {
+    const volunteer = await database.query(
+      `SELECT id, role
+       FROM users
+       WHERE id = $1
+       LIMIT 1`,
+      [volunteerId],
+    );
+    if (
+      !volunteer.rows[0]
+      || String(volunteer.rows[0].role).toUpperCase() !== 'VOLUNTEER'
+    ) {
+      throw new AppError('Volunteer ID must belong to a volunteer account', 422);
+    }
+
     result = await database.query(
       `UPDATE pickup_requests
        SET status = 'ASSIGNED', volunteer_id = $1, updated_at = NOW()
