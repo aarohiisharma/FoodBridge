@@ -59,4 +59,20 @@ describe('user registration', () => {
     });
     expect(response.status).toBe(422);
   });
+
+  it('registers an NGO when no transaction client is available', async () => {
+    database.query
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ id: 2, name: 'NGO Contact', email: 'ngo@example.com', role: 'NGO', phone: null, created_at: '2026-01-01T00:00:00.000Z' }] })
+      .mockResolvedValueOnce({ rows: [{ id: 1 }] });
+    const response = await request(app).post('/api/auth/register').send({
+      name: 'NGO Contact',
+      email: 'ngo@example.com',
+      password: 'password123',
+      role: 'NGO',
+      ngoOrganizationName: 'Helping Hands',
+      ngoRegistrationNumber: 'NGO-123',
+    });
+    expect(response.status).toBe(201);
+  });
 });

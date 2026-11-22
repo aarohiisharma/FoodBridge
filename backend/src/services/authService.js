@@ -41,7 +41,17 @@ async function register({ name, email, password, role, ngoOrganizationName, ngoR
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const client = normalizedRole === 'NGO' ? await database.pool.connect() : null;
+  let client = null;
+  if (
+    normalizedRole === 'NGO'
+    && database.pool
+    && typeof database.pool.connect === 'function'
+  ) {
+    const connection = await database.pool.connect();
+    if (connection && typeof connection.query === 'function') {
+      client = connection;
+    }
+  }
   const query = client ? client.query.bind(client) : database.query;
 
   try {
@@ -81,7 +91,7 @@ async function register({ name, email, password, role, ngoOrganizationName, ngoR
     }
     throw error;
   } finally {
-    if (client) client.release();
+    if (client && typeof client.release === 'function') client.release();
   }
 }
 
